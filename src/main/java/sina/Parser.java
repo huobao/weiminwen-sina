@@ -44,22 +44,9 @@ public class Parser {
     public HomeData getSinaDataByUserId(String userId) {
         String hostUrl = "https://weibo.com/u/" + userId;
         String result = null;
-        String cookie = getCookie();
         HomeData homeData = new HomeData();
         try {
-            HttpResponse response = Request.Get(hostUrl)
-                                           .connectTimeout(1000)
-                                           .socketTimeout(1000)
-                                           .setHeader("Host", "weibo.com")
-                                           .setHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36")
-                                           .setHeader("Content-Type", "text/html; charset=utf-8")
-                                           .setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
-                                           .setHeader("Accept-Language", "zh-CN,zh;q=0.8")
-                                           .setHeader("Upgrade-Insecure-Requests", "1")
-                                           .setHeader("Accept-Encoding", "gzip, deflate, br")
-                                           .setHeader("Accept-Language", "zh-CN,zh;q=0.8")
-                                           .setHeader("Cookie", cookie)
-                                           .execute().returnResponse();
+            HttpResponse response =getGetRequest(hostUrl).execute().returnResponse();
             StatusLine status = response.getStatusLine();
             if (status.getStatusCode() < 300) {
                 InputStream input = response.getEntity().getContent();
@@ -161,24 +148,11 @@ public class Parser {
         int maxTimes = 5;
         int pageMax = 1;
         List<SinaData> sinaDatas = new ArrayList<SinaData>();
-        String cookie = getCookie();
         while (page <= pageMax && page <= maxTimes) {
             String result = null;
             try {
                 String url = String.format(urlF, id, page);
-                HttpResponse response = Request.Get(url)
-                                               .connectTimeout(1000)
-                                               .socketTimeout(1000)
-                                               .setHeader("Host", "weibo.com")
-                                               .setHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36")
-                                               .setHeader("Content-Type", "text/html; charset=utf-8")
-                                               .setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
-                                               .setHeader("Accept-Language", "zh-CN,zh;q=0.8")
-                                               .setHeader("Upgrade-Insecure-Requests", "1")
-                                               .setHeader("Accept-Encoding", "gzip, deflate, br")
-                                               .setHeader("Accept-Language", "zh-CN,zh;q=0.8")
-                                               .setHeader("Cookie", cookie)
-                                               .execute().returnResponse();
+                HttpResponse response = getGetRequest(url).execute().returnResponse();
                 StatusLine status = response.getStatusLine();
                 if (status.getStatusCode() < 300) {
                     InputStream input = response.getEntity().getContent();
@@ -245,21 +219,8 @@ public class Parser {
 
     public SinaData getMblog(String weiboUrl) {
         String mblogStr = "";
-        String cookie = getCookie();
         try {
-            HttpResponse response = Request.Get(weiboUrl)
-                                           .connectTimeout(1000)
-                                           .socketTimeout(1000)
-                                           .setHeader("Host", "weibo.com")
-                                           .setHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36")
-                                           .setHeader("Content-Type", "text/html; charset=utf-8")
-                                           .setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
-                                           .setHeader("Accept-Language", "zh-CN,zh;q=0.8")
-                                           .setHeader("Upgrade-Insecure-Requests", "1")
-                                           .setHeader("Accept-Encoding", "gzip, deflate, br")
-                                           .setHeader("Accept-Language", "zh-CN,zh;q=0.8")
-                                           .setHeader("Cookie", cookie)
-                                           .execute().returnResponse();
+            HttpResponse response =getGetRequest(weiboUrl).execute().returnResponse();
             StatusLine status = response.getStatusLine();
             if (status.getStatusCode() < 300) {
                 InputStream input = response.getEntity().getContent();
@@ -306,7 +267,7 @@ public class Parser {
     }
 
     public static void main(String[] args) {
-        String url = "https://weibo.com/1574684061/FuBnhx4T5?from=page_1003061574684061_profile&wvr=6&mod=weibotime&type=comment#_rnd1510485402164";
+        String url = "https://weibo.com/1751675285/FuXuj91Es?ref=feedsdk&type=comment#_rnd1510663156626";
         Parser parser = new Parser();
         SinaData sinaData = parser.getMblog(url);
         List<SinaData> bigVSinaDatas = parser.getBigVSinaDataOfTransmit(sinaData.getId());
@@ -375,5 +336,31 @@ public class Parser {
         }
 
         return result;
+    }
+
+    public String getUserAgent() {
+        return "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36";
+    }
+
+    public Request getGetRequest(String url) {
+        Request request = Request
+            .Get(url)
+            .connectTimeout(10000)
+            .socketTimeout(10000)
+            .setHeader("Host", "weibo.com")
+            .setHeader("User-Agent", getUserAgent())
+            .setHeader("Content-Type", "text/html; charset=utf-8")
+            .setHeader(
+                "Accept",
+                "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
+            .setHeader("Accept-Language", "zh-CN,zh;q=0.8")
+            .setHeader("Upgrade-Insecure-Requests", "1")
+            .setHeader("Accept-Encoding", "gzip, deflate, br")
+            .setHeader("Accept-Language", "zh-CN,zh;q=0.8")
+            .setHeader("Cache-Control", "max-age=0")
+            .setHeader("Connection", "keep-alive")
+            .setHeader("Cookie", getCookie())
+            .setHeader("Upgrade-Insecure-Requests", "1");
+        return request;
     }
 }
